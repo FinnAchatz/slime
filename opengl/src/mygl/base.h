@@ -11,12 +11,6 @@
 
 #include <string>
 
-#include "math/vector2d.h"
-#include "math/vector3d.h"
-#include "math/vector4d.h"
-#include "math/matrix3d.h"
-#include "math/matrix4d.h"
-
 
 /**
  * @brief Create and initialize GLFW window and OpenGL context.

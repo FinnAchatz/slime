@@ -4,6 +4,7 @@
 #include "mygl/base.h"
 #include "mygl/shader.h"
 
+#include "config.h"
 
 void checkShaderCompilation(GLuint shader) {
     GLint success;
@@ -25,19 +26,30 @@ void checkProgramLinking(GLuint program) {
     }
 }
 
+/* GLFW callback function for window resize event */
+void windowResizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+    g_ProgramConfiguration.width = width;
+    g_ProgramConfiguration.height = height;
+}
+
 int main() {
     GLFWwindow* window = windowCreate("Assignment 1 - Transformations, User Input and Camera", 800, 600);
     if(!window) { return EXIT_FAILURE; }
+
+    // set glfw callbacks
+    glfwSetFramebufferSizeCallback(window, windowResizeCallback);
 
     // Viewport setup
     glViewport(0, 0, 800, 600);
 
     // Vertex data
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
+        -1.f, -1.f, 0.0f,
+         1.f, -1.f, 0.0f,
+         1.f,  1.f, 0.0f,
+        -1.f,  1.f, 0.0f
     };
 
     unsigned int indices[] = {

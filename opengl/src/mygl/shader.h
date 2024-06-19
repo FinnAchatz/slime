@@ -36,20 +36,3 @@ ShaderProgram shaderCreate(const std::string& vertexSource, const std::string& f
  */
 void shaderDelete(const ShaderProgram& program);
 
-/**
- * @brief Function to set uniform in shader program.
- *
- * @param shader Shader program.
- * @param name Uniform naem.
- * @param value Value to which the uniform should be set.
- */
-void shaderUniform(ShaderProgram& shader, const std::string& name, const Matrix4D& value);
-
-/**
- * @brief Function to set uniform in shader program.
- *
- * @param shader Shader program.
- * @param name Uniform naem.
- * @param value Value to which the uniform should be set.
- */
-void shaderUniform(ShaderProgram& shader, const std::string& name, int value);

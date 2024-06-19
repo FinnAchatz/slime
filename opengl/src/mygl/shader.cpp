@@ -119,26 +119,3 @@ void shaderDelete(const ShaderProgram &program)
     glDeleteProgram(program.id);
 }
 
-void shaderUniform(ShaderProgram &shader, const std::string &name, const Matrix4D &value)
-{
-    GLint index = glGetUniformLocation(shader.id, name.c_str());
-    if(index < 0)
-    {
-        std::cerr << "[Shader] Couldn't set value for uniform " << name << std::endl;
-        std::cerr.flush();
-        throw std::runtime_error("[Shader] Couldn't set value for uniform " + name);
-    }
-    glUniformMatrix4fv(index, 1, GL_FALSE, value.ptr());
-}
-
-void shaderUniform(ShaderProgram &shader, const std::string &name, int value)
-{
-    GLint index = glGetUniformLocation(shader.id, name.c_str());
-    if(index < 0)
-    {
-        std::cerr << "[Shader] Couldn't set value for uniform " << name << std::endl;
-        std::cerr.flush();
-        throw std::runtime_error("[Shader] Couldn't set value for uniform " + name);
-    }
-    glUniform1i(index, value);
-}
