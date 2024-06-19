@@ -1,0 +1,247 @@
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+
+#include "math/vector4d.h"
+#include "mygl/shader.h"
+#include "mygl/mesh.h"
+#include "mygl/geometry.h"
+#include "mygl/camera.h"
+
+/* translation and color for the water plane */
+namespace waterPlane
+{
+const Vector4D color = {0.0f, 0.0f, 0.35f, 1.0f};
+const Matrix4D trans = Matrix4D::identity();
+}
+
+/* translation and scale for the scaled cube */
+namespace scaledCube
+{
+const Matrix4D scale = Matrix4D::scale(2.0f, 2.0f, 2.0f);
+const Matrix4D trans = Matrix4D::translation({0.0f, 4.0f, 0.0f});
+}
+
+/* struct holding all necessary state variables for scene */
+struct
+{
+    /* shader */
+    ShaderProgram shaderColor;
+
+    int width;
+    int height;
+
+    GLuint squareVAO;
+    GLuint squareVBO;
+    GLuint squareEBO;
+
+} sScene;
+
+/* struct holding all state variables for input */
+struct
+{
+    bool mouseLeftButtonPressed = false;
+    Vector2D mousePressStart;
+    bool buttonPressed[4] = {false, false, false, false};
+    bool followBoat = false;
+} sInput;
+
+/* GLFW callback function for keyboard events */
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    /* called on keyboard event */
+
+    /* close window on escape */
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+
+    /* make screenshot and save in work directory */
+    if(key == GLFW_KEY_P && action == GLFW_PRESS)
+    {
+        screenshotToPNG("screenshot.png");
+    }
+
+    /* input for cube control */
+    if(key == GLFW_KEY_W)
+    {
+        sInput.buttonPressed[0] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+    if(key == GLFW_KEY_S)
+    {
+        sInput.buttonPressed[1] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+
+    if(key == GLFW_KEY_A)
+    {
+        sInput.buttonPressed[2] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+    if(key == GLFW_KEY_D)
+    {
+        sInput.buttonPressed[3] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    }
+
+
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    {
+        sInput.followBoat = !sInput.followBoat;
+    }
+}
+
+/* GLFW callback function for window resize event */
+void windowResizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+    sScene.width = width;
+    sScene.height = height;
+}
+
+/* function to setup and initialize the whole scene */
+void sceneInit(float width, float height)
+{
+    /* load shader from file */
+    sScene.shaderColor = shaderLoad("shader/default.vert", "shader/default.frag");
+
+
+    /* square for render */
+    float vertices[] = {
+        // Positions
+        -1.f, -1.f, 0.0f,
+        1.f, -1.f, 0.0f,
+        1.f,  1.f, 0.0f,
+        -1.f,  1.f, 0.0f
+    };
+
+    unsigned int indices[] = {
+        0, 1, 2, // First triangle
+        2, 3, 0  // Second triangle
+    };
+
+    unsigned int VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    sScene.squareVAO = VAO;
+}
+
+/* function to move and update objects in scene (e.g., rotate cube according to user input) */
+void sceneUpdate(float dt)
+{
+    /* if 'w' or 's' pressed, cube should rotate around x axis */
+    int translationDir = 0;
+    if (sInput.buttonPressed[0]) {
+        translationDir = 1;
+    } else if (sInput.buttonPressed[1]) {
+        translationDir = -1;
+    }
+
+    /* if 'a' or 'd' pressed, cube should rotate around y axis */
+    int rotationDir = 0;
+    if (sInput.buttonPressed[2]) {
+        rotationDir = 1;
+    } else if (sInput.buttonPressed[3]) {
+        rotationDir = -1;
+    }
+
+}
+
+/* function to draw all objects in the scene */
+void sceneDraw()
+{
+    /* clear framebuffer color */
+    glClearColor(135.0 / 255, 206.0 / 255, 235.0 / 255, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    /*------------ render scene -------------*/
+    /* use shader and set the uniforms (names match the ones in the shader) */
+    {
+        glUseProgram(sScene.shaderColor.id);
+        
+        glBindVertexArray(sScene.squareVAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // Assuming you have a shader program object 'shaderProgram'
+        GLuint screenSizeLocation = glGetUniformLocation(sScene.shaderColor.id, "screenSize");
+
+        // Set the screen size (width and height) in pixels
+        glUniform2f(screenSizeLocation, sScene.width, sScene.height);
+    }
+    glCheckError();
+
+    /* cleanup opengl state */
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+int main(int argc, char** argv)
+{
+    /* create window/context */
+    int width = 1280;
+    int height = 720;
+    GLFWwindow* window = windowCreate("Assignment 1 - Transformations, User Input and Camera", width, height);
+    if(!window) { return EXIT_FAILURE; }
+
+    /* set window callbacks */
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetFramebufferSizeCallback(window, windowResizeCallback);
+
+
+    /*---------- init opengl stuff ------------*/
+    glEnable(GL_DEPTH_TEST);
+
+    /* setup scene */
+    sceneInit(width, height);
+
+    /*-------------- main loop ----------------*/
+    double timeStamp = glfwGetTime();
+    double timeStampNew = 0.0;
+
+    /* loop until user closes window */
+    while(!glfwWindowShouldClose(window))
+    {
+        /* poll and process input and window events */
+        glfwPollEvents();
+
+        /* update model matrix of cube */
+        timeStampNew = glfwGetTime();
+        sceneUpdate(timeStampNew - timeStamp);
+        timeStamp = timeStampNew;
+
+        /* draw all objects in the scene */
+        sceneDraw();
+
+
+        /* swap front and back buffer */
+        glfwSwapBuffers(window);
+    }
+
+
+    /*-------- cleanup --------*/
+    /* delete opengl shader and buffers */
+    shaderDelete(sScene.shaderColor);
+    glDeleteBuffers(1, &sScene.squareVAO);
+    glDeleteBuffers(1, &sScene.squareVBO);
+    glDeleteBuffers(1, &sScene.squareEBO);
+
+    /* cleanup glfw/glcontext */
+    windowDelete(window);
+
+    return EXIT_SUCCESS;
+}
