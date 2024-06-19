@@ -6,7 +6,7 @@
 #------------------------------------------#
 ############################################
 cmake_minimum_required( VERSION 3.2 )
-project( viscomp-assignment-1 )
+project( slime )
 
 message("\n * Assignment 1 - Visual Computing ")
 message(STATUS "${PROJECT_NAME} build environment --")
@@ -64,24 +64,24 @@ file(GLOB_RECURSE SHADER src/*.vert src/*.frag)
 source_group(TREE  ${CMAKE_CURRENT_SOURCE_DIR}
              FILES ${SRC} ${HDR} ${SHADER})
 
-add_executable(assignment_01 ${SRC} ${HDR} ${SHADER})
-target_link_libraries(assignment_01 OpenGL::GL glfw glad stb_image)
-target_include_directories(assignment_01 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
-target_compile_features(assignment_01 PUBLIC cxx_std_17)
-set_target_properties(assignment_01 PROPERTIES CXX_EXTENSIONS OFF)
+add_executable(Slime ${SRC} ${HDR} ${SHADER})
+target_link_libraries(Slime OpenGL::GL glfw glad stb_image)
+target_include_directories(Slime PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+target_compile_features(Slime PUBLIC cxx_std_17)
+set_target_properties(Slime PROPERTIES CXX_EXTENSIONS OFF)
 
 #########################################
 #            Visual Studio Flavors      #
 #########################################
-set_property( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT assignment_01 )
+set_property( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Slime )
 set_target_properties(
-    assignment_01 PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:assignment_01> )
+    Slime PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:Slime> )
 
 #########################################
 #  Copy Shaders/Assets to build folder  #
 #########################################
-add_custom_target( assignment_01_copy_shader ALL
+add_custom_target( Slime_copy_shader ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/src/shader
-    $<TARGET_FILE_DIR:assignment_01>/shader )
+    $<TARGET_FILE_DIR:Slime>/shader )
