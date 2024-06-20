@@ -79,17 +79,51 @@ int main() {
 
     glUseProgram(shaderProgram.id);
 
+
+    srand(1);
+
+    int size_x = 800;
+    int size_y = 600;
+    int len = size_x * size_y;
+
+    float * values = new float [len];
+    for (size_t i = 0; i < len; i++)
+    {
+        values[i] = float(rand()) / RAND_MAX; 
+        // values[i] = i % 4 == 0 ? 0.0 : 1.0;
+    }
+
+    // transfer pixels
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, size_x, size_y, 0, GL_RED, GL_FLOAT, &values[0]);
+    
     // Set the screen size uniform
-    int screenSizeLoc = glGetUniformLocation(shaderProgram.id, "screenSize");
-    glUniform2f(screenSizeLoc, 800.0f, 600.0f);
+    // int screenSizeLoc = glGetUniformLocation(shaderProgram.id, "screenSize");
+    // glUniform2d(screenSizeLoc, 800, 600);
+    glUniform2f( glGetUniformLocation(shaderProgram.id, "uSize"), float(size_x), float(size_y));
+    glUniform1fv( glGetUniformLocation(shaderProgram.id, "uValues"), len, values);
 
     // Main render loop
     while (!glfwWindowShouldClose(window)) {
         // Render
         glClear(GL_COLOR_BUFFER_BIT);
 
+        for (size_t i = 0; i < len; i++)
+        {
+            values[i] = float(rand()) / RAND_MAX; 
+            // values[i] = i % 4 == 0 ? 0.0 : 1.0;
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, size_x, size_y, 0, GL_RED, GL_FLOAT, &values[0]);
+
+
         glUseProgram(shaderProgram.id);
         glBindVertexArray(VAO);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
